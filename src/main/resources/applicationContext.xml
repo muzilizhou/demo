@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:cache="http://www.springframework.org/schema/cache" xmlns:p="http://www.springframework.org/schema/p" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation=" http://www.springframework.org/schema/beans
+     http://www.springframework.org/schema/beans/spring-beans.xsd
+     http://www.springframework.org/schema/tx
+     http://www.springframework.org/schema/tx/spring-tx.xsd
+     http://www.springframework.org/schema/aop
+     http://www.springframework.org/schema/aop/spring-aop.xsd 
+     http://www.springframework.org/schema/context
+     http://www.springframework.org/schema/context/spring-context.xsd 
+     http://www.springframework.org/schema/cache
+     http://www.springframework.org/schema/cache/spring-cache.xsd ">
+	<tx:annotation-driven transaction-manager="txManagerHIP" />
+	<tx:advice id="txAdvice" transaction-manager="txManagerHIP">
+		<tx:attributes>
+			<tx:method name="*" read-only="false" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="del*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+	<aop:config proxy-target-class="true">
+		<aop:advisor advice-ref="txAdvice" pointcut="execution(* com.sz.management.service..*.*(..))" />
+	</aop:config>
+
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<value>classpath:system-cfg.properties</value>
+		</property>
+	</bean>
+	<!-- mysql连接 -->
+	<bean id="dataSourceHIP" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+		<property name="url" value="${winhip.url}" />
+		<property name="username" value="${winhip.username}" />
+		<property name="password" value="${winhip.password}" />
+		<property name="maxWait" value="60000" />
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+		<!-- #SQL查询,用来验证从连接池取出的连接,在将连接返回给调用者之前 -->
+		<property name="validationQuery" value="SELECT 'x'" />
+		<!-- #指明连接是否被空闲连接回收器(如果有)进行检验.#如果检测失败,则连接将被从池中去除. -->
+		<property name="testWhileIdle" value="true" />
+		<!-- #指明是否在从池中取出连接前进行检验,如果检验失败,#则从池中去除连接并尝试取出另一个. -->
+		<property name="testOnBorrow" value="true" /><!-- 原配置false -->
+		<!-- #指明是否在归还到池中前进行检验  -->
+		<property name="testOnReturn" value="true" /><!-- 原配置false -->
+		<property name="poolPreparedStatements" value="true" />
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="20" />
+		<property name="filters" value="stat,log4j" />
+	</bean>
+	<bean id="jdbcTemplateHIP" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSourceHIP"></property>
+	</bean>
+
+	<bean id="txManagerHIP" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" abstract="false"
+		lazy-init="default" autowire="default">
+		<property name="dataSource" ref="dataSourceHIP" />
+	</bean>
+	
+
+	<context:annotation-config />
+	<context:component-scan base-package="com.sz.college" />
+	<cache:annotation-driven />
+	<bean id="ehcache" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean" p:configLocation="classpath:ehcache.xml" p:shared="true" />
+	<bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager" p:cacheManager-ref="ehcache"></bean>
+	
+</beans>

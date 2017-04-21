@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="ehcache.xsd"
+	updateCheck="true" monitoring="autodetect" dynamicConfig="true">
+	<diskStore path="java.io.tmpdir" />
+	<transactionManagerLookup 
+		class="net.sf.ehcache.transaction.manager.DefaultTransactionManagerLookup"
+		properties="jndiName=java:/TransactionManager" 
+		propertySeparator=";" 
+	/>
+	<cacheManagerEventListenerFactory class="" properties="" />
+	<cacheManagerPeerProviderFactory 
+		class="net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory"
+		properties="peerDiscovery=automatic,
+	                multicastGroupAddress=230.0.0.1,
+	                multicastGroupPort=4446, timeToLive=1"
+		propertySeparator="," 
+	/>
+	<cacheManagerPeerListenerFactory class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory" />
+	<defaultCache 
+		eternal="false" 
+		timeToIdleSeconds="300" 
+		timeToLiveSeconds="300"
+		maxEntriesLocalHeap="10000" 
+		diskSpoolBufferSizeMB="50" 
+		maxEntriesLocalDisk="100000"
+		maxElementsInMemory="50000" 
+		diskExpiryThreadIntervalSeconds="300"
+		memoryStoreEvictionPolicy="LRU"
+		overflowToDisk="false"		>
+		<persistence strategy="localTempSwap" />
+	</defaultCache>
+	<cache name="org.hibernate.cache.internal.StandardQueryCache"
+        maxElementsInMemory="10000"
+        eternal="false"
+        timeToIdleSeconds="300"
+        timeToLiveSeconds="4200"
+        overflowToDisk="true"
+        />
+    <cache name="org.hibernate.cache.spi.UpdateTimestampsCache"
+        maxElementsInMemory="5000"
+        eternal="true"
+        timeToIdleSeconds="0"
+        timeToLiveSeconds="0"
+        overflowToDisk="false"
+        />
+</ehcache>
